@@ -1,4 +1,4 @@
-# 1. ºôµå °á°ú¹°
+# 1. ë¹Œë“œ ê²°ê³¼ë¬¼
 target/
 build/
 out/
@@ -6,7 +6,7 @@ out/
 *.jar
 *.war
 
-# 2. IDE ¼³Á¤ ÆÄÀÏ
+# 2. IDE ì„¤ì • íŒŒì¼
 .idea/
 *.iml
 .vscode/
@@ -15,12 +15,13 @@ out/
 .project
 bin/
 
-# 3. ·Î±× ÆÄÀÏ
+# 3. ë¡œê·¸ íŒŒì¼
 *.log
 
-# 4. OS ½Ã½ºÅÛ ÆÄÀÏ
+# 4. OS ì‹œìŠ¤í…œ íŒŒì¼
 .DS_Store
 Thumbs.db
 
-# 5. º¸¾È 
+# 5. ë³´ì•ˆ 
 # src/main/resources/database.properties
+database.DEV.properties
