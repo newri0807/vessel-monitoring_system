@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.vms.mapper.UserMapper">
+    <select id="getUserById" resultType="com.vms.model.UserDto">
+        SELECT 
+            user_id as userId,
+            password,
+            user_name as userName,
+            role      as role  FROM tb_user
+        WHERE user_id = #{userId}
+    </select>
+</mapper>
+

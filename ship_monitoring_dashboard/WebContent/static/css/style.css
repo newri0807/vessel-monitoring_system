@@ -1,0 +1,839 @@
+@charset "utf-8";
+
+:root {
+    /* 밝은 모드용 변수 재설정 */
+    --panel-bg: rgba(255, 255, 255, 0.85); /* 투명한 화이트 배경 */
+    --accent-blue: #0088ff; /* 시인성 좋은 밝은 블루 */
+    --border-color: rgba(0, 0, 0, 0.08);
+    --text-primary: #1e293b;
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================================
+   1. Global & Layout
+   ========================================= */
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* 지도가 화면 전체를 쓰므로 스크롤 방지 */
+    font-family: 'Inter', 'Segoe UI', sans-serif; /* 폰트 우선순위 병합 */
+    background: #f1f2f6;
+}
+
+.content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.page-header {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+/* =========================================
+   2. Sidebar (Navigation)
+   ========================================= */
+.sidebar {
+    width: 260px;
+    background: #1e272e;
+    color: #d2dae2;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 25px;
+    font-size: 1.4em;
+    font-weight: bold;
+    background: #0fbcf9;
+    color: white;
+    letter-spacing: 1px;
+}
+
+/* 프로필 영역 레이아웃 */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 아이콘과 텍스트 사이 간격 */
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.02); /* 아주 연한 배경 (선택사항) */
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* 프로필 아이콘 (왼쪽) */
+.profile-icon {
+    font-size: 2.2rem;
+    color: #cbd5e0;
+}
+
+/* 텍스트 영역 (오른쪽) */
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #2d3748;
+    line-height: 1.2;
+}
+
+/* 권한 뱃지 스타일 */
+.user-role {
+    display: inline-block;
+    font-size: 0.75rem; 
+    font-weight: 600;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 10px; 
+    width: fit-content;
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
+
+/* --- 권한별 색상 자동 적용 --- */
+
+/* 시스템/관리자 (SYSTEM, ADMIN) - 붉은/주황 계열 */
+.role-SYSTEM, .role-ADMIN {
+    background-color: #fff5f5;
+    color: #e53e3e;
+    border: 1px solid #fed7d7;
+}
+
+/* 일반 사용자 (USER, OPERATOR) - 파란/초록 계열 */
+.role-USER, .role-OPERATOR {
+    background-color: #ebf8ff;
+    color: #3182ce;
+    border: 1px solid #bee3f8;
+}
+
+/* 그 외 (기본) - 회색 계열 */
+.user-role:not([class*="role-"]) {
+    background-color: #edf2f7;
+    color: #718096;
+}
+
+.menu-item {
+    padding: 18px 25px;
+    cursor: pointer;
+    border-left: 5px solid transparent;
+    transition: all 0.3s;
+    font-size: 0.95em;
+}
+
+.menu-item:hover {
+    background: #485460;
+    border-left: 5px solid #0fbcf9;
+    color: white;
+}
+
+.menu-item.active {
+    background: #2f3640;
+    border-left: 5px solid #0fbcf9;
+    color: white;
+}
+
+.menu-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.logout {
+    margin-top: auto;
+    background: #ff5e57;
+    color: white;
+}
+
+.logout:hover {
+    background: #ff3f34;
+    border-left-color: #ff3f34;
+}
+
+/* 필터 영역 (사이드바 내부) */
+.filter-section {
+    padding: 20px;
+    background: #2f3640;
+    border-top: 1px solid #485460;
+    border-bottom: 1px solid #485460;
+}
+
+.filter-section label {
+    font-size: 0.8em;
+    color: #808e9b;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.filter-section select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    background: #485460;
+    color: white;
+    outline: none;
+}
+
+/* =========================================
+   3. Map & Markers
+   ========================================= */
+#map {
+    flex: 1;
+    height: 100%;
+    z-index: 1;
+    background: #eef2f5;
+}
+
+/* Marker Pulse Animation */
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(52, 152, 219, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+}
+
+.marker-pulse {
+    border-radius: 50%;
+    animation: pulse-ring 1.5s infinite;
+}
+
+.custom-ship-icon {
+    transition: none !important;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+/* =========================================
+   4. Leaflet Popup Overrides
+   ========================================= */
+.leaflet-popup-content-wrapper {
+    background: white;
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    padding: 0;
+    overflow: hidden; 
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 닫기 버튼 */
+.leaflet-popup-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    border: none;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.leaflet-popup-close-button:hover {
+    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+/* 팝업 화살표 */
+.leaflet-popup-tip {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 줌 애니메이션 부드럽게 */
+.leaflet-zoom-animated {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 팝업 나타날 때 부드러운 애니메이션 */
+.leaflet-popup {
+    animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    top: 5px!important;
+    right: 5px!important;
+}
+
+
+/* =========================================
+   5. VMS Card UI (Popup Content)
+   ========================================= */
+/* Header */
+.vms-card-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 24px 20px;
+    color: white;
+    position: relative;
+}
+
+.vms-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vms-card-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+/* Body */
+.vms-card-body {
+    padding: 20px;
+    background: #fff;
+}
+
+/* Info Grid (Stats) */
+.vms-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.vms-stat-box {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #edf2f7;
+}
+
+.vms-stat-label {
+    font-size: 0.7rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.vms-stat-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+/* Status Indicators */
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.status-SAILING { color: #38a169; } .dot-SAILING { background: #38a169; }
+.status-ANCHORED { color: #d69e2e; } .dot-ANCHORED { background: #d69e2e; }
+
+/* Action Buttons */
+.vms-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.vms-btn {
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.vms-btn:active {
+    transform: scale(0.98);
+}
+
+.btn-track {
+    background: white;
+    color: #2b6cb0;
+    border: 1px solid #bee3f8;
+    box-shadow: 0 2px 5px rgba(43, 108, 176, 0.05);
+}
+
+.btn-track:hover {
+    background: #ebf8ff;
+    border-color: #90cdf4;
+}
+
+.btn-alert {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+.btn-alert:hover {
+    background: #fed7d7;
+    border-color: #feb2b2;
+}
+
+/* CRUD Box (레거시 지원용, 필요 시 사용) */
+.crud-box {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+.crud-box select { padding: 5px; width: 65%; border-radius: 4px; border: 1px solid #ccc; }
+.crud-box button { width: 30%; background: #05c46b; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; }
+
+
+/* =========================================
+   6. Alarm History Modal
+   ========================================= */
+.modal-overlay {
+    display: none; /* JS로 제어 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-container {
+    background: white;
+    width: 500px;
+    max-width: 90%;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a0aec0;
+    cursor: pointer;
+}
+
+.modal-close:hover { color: #4a5568; }
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Alarm List Items */
+.alarm-item {
+    padding: 16px 24px;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: background 0.2s;
+}
+
+.alarm-item:last-child { border-bottom: none; }
+.alarm-item:hover { background: #f7fafc; }
+
+.alarm-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* Icon Colors */
+.icon-OVERSPEED { background: #fed7d7; color: #c53030; }
+.icon-ANCHOR_DRAG { background: #feebc8; color: #c05621; }
+.icon-ENTER_AREA { background: #bee3f8; color: #2b6cb0; }
+.icon-DEFAULT { background: #e2e8f0; color: #4a5568; }
+
+.alarm-content { flex: 1; }
+.alarm-type { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+.alarm-msg { font-size: 0.95rem; color: #4a5568; line-height: 1.4; }
+.alarm-time { font-size: 0.75rem; color: #a0aec0; margin-top: 6px; display: block; }
+
+.empty-state {
+    padding: 40px;
+    text-align: center;
+    color: #a0aec0;
+}
+
+/* =========================================
+   7. Map Overlay Controls Style
+   ========================================= */
+.map-overlay-control {
+    position: absolute;
+    z-index: 1000; /* Leaflet 위에 표시 */
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Search Box (Top Left) */
+.search-container {
+    top: 20px;
+    left: 20px; /* 사이드바 크기에 따라 조정 필요, 현재는 map relative */
+    width: 300px;
+}
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 10px 5px;
+}
+.search-input-wrapper i { color: #a0aec0; margin-right: 10px; }
+.search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95rem;
+    color: #2d3748;
+}
+.search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    border-top: 1px solid #edf2f7;
+    display: none; /* 기본 숨김 */
+}
+.search-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+.search-item:hover { background: #f7fafc; }
+.search-item-name { font-weight: 600; color: #2d3748; }
+.search-item-id { font-size: 0.8em; color: #718096; }
+
+/* =========================================
+   8. main.jsp > Alarm Card (Top Right)
+   ========================================= */
+/* .alarm-card {
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+} */
+
+
+.alarm-card:hover { transform: translateY(-2px); }
+.alarm-icon-box {
+    width: 45px; height: 45px;
+    background: #fff5f5;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #e53e3e; font-size: 1.2rem;
+    position: relative;
+}
+/* 알람 뱃지 애니메이션 */
+.alarm-pulse-dot {
+    position: absolute; top: -2px; right: -2px;
+    width: 10px; height: 10px;
+    background: #e53e3e; border: 2px solid white;
+    border-radius: 50%;
+    animation: pulse-red 1.5s infinite;
+}
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+}
+.alarm-info { display: flex; flex-direction: column; }
+.alarm-label { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; }
+.alarm-count { font-size: 1.5rem; font-weight: 700; color: #2d3748; line-height: 1; margin-top: 2px; }
+.alarm-count span { font-size: 0.9rem; color: #a0aec0; font-weight: 400; margin-left: 2px; }
+
+.alarm-card {
+    top: 24px;
+    right: 24px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 14px 22px;
+    box-shadow: var(--shadow-md);
+    border-left: 5px solid #ff4d4d; /* 알람 강조 라인 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.alarm-label {
+    color: #64748b;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.alarm-count { 
+    color: #1e293b; 
+    font-weight: 800;
+    font-size: 24px;
+}
+/* =========================================
+   9. Deep Blue Ripple & Path Effect 
+   ========================================= */
+/*  선 흐름 효과 */
+@keyframes track-flow {
+    to { stroke-dashoffset: 0; }
+    from { stroke-dashoffset: 20; }
+}
+
+/* 물결 파동 (Deep Blue) */
+@keyframes blue-ripple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 85, 255, 0.8),
+                    0 0 0 0 rgba(0, 85, 255, 0.8);
+    }
+    40% {
+        box-shadow: 0 0 0 20px rgba(0, 85, 255, 0),
+                    0 0 0 0 rgba(0, 85, 255, 0.8);
+    }
+    80% {
+        box-shadow: 0 0 0 20px rgba(0, 85, 255, 0),
+                    0 0 0 40px rgba(0, 85, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 85, 255, 0),
+                    0 0 0 0 rgba(0, 85, 255, 0);
+    }
+}
+
+/* 경로 스타일 (항적) */
+.modern-track-line {
+    stroke: #0055ff; /
+    stroke-width: 3px;
+    stroke-dasharray: 4, 8; /* 물보라 느낌의 점선 */
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0.8;
+    
+    /* 파란색 네온 발광 효과 */
+    filter: drop-shadow(0 0 4px rgba(0, 60, 255, 0.6));
+    animation: track-flow 1s linear infinite; 
+}
+
+/* 선박 아이콘 (레이더 파동) */
+.marker-pulse {
+    border-radius: 50%;
+    /* 배경을 연한 파랑으로 깔아 레이더 중심점 강조 */
+    background: rgba(0, 85, 255, 0.25);
+    
+    /* 파동 애니메이션 적용 */
+    animation: blue-ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    
+    /* 아이콘 자체도 선명하게 */
+    filter: brightness(1.1) drop-shadow(0 0 2px rgba(0, 85, 255, 0.8));
+}
+
+/* =========================================
+   10. FINAL map/main.jsp
+   ========================================= */
+/* 공통 유리 효과 */
+/* .map-overlay-control {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+} */
+
+/* 검색창 디자인 */
+.search-container {
+    top: 24px;
+    left: 24px;
+    width: 340px;
+    transition: all 0.3s ease;
+}
+.search-container:focus-within {
+    width: 360px;
+    border-color: var(--accent-blue);
+}
+.search-input-wrapper i { color: var(--accent-blue); font-size: 1.1rem; }
+.search-input { background: transparent; font-weight: 500; }
+
+/* 지도 밝기  */
+.leaflet-container { 
+    background: #f8fafc !important; 
+}
+.leaflet-layer { 
+    filter: brightness(1.05) contrast(1.02) saturate(1.1); 
+}
+
+/* 상단 검색바 - 깨끗한 화이트 캡슐 */
+.search-container {
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+        width: 380px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50px; /* 더 둥글게 */
+    padding: 2px 24px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-container:focus-within {
+    width: 520px;
+    background: #ffffff;
+    border-color: var(--accent-blue);
+    box-shadow: 0 10px 25px rgba(0, 136, 255, 0.15);
+}
+
+.search-input { 
+    color: #1e293b; 
+    background: transparent; 
+    height: 48px; 
+    font-size: 15px; 
+    font-weight: 500;
+}
+
+.search-input-wrapper i {
+    color: var(--accent-blue); 
+    margin-right: 12px;
+}
+
+/* 검색 결과 리스트 */
+.search-results {   
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    z-index: 222;
+    position: absolute;
+    top: 77px;
+    left: 0;
+    width: 100%;
+}
+}
+
+.search-item {
+    padding: 14px 20px;
+    margin: 5px;
+    border-radius: 16px;
+    transition: 0.2s;
+}
+
+.search-item:hover {
+    background: #f0f7ff;
+    color: var(--accent-blue);
+}
+
+/* 팝업(Vessel Info)  */
+.leaflet-popup-content-wrapper {
+    background: var(--panel-bg) !important;
+    backdrop-filter: blur(20px);
+    color: #1e293b !important;
+    border-radius: 20px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.leaflet-popup-tip { 
+    background: white !important; 
+}
+
+/* 항적 원형 포인트 */
+.path-node-circle {
+    filter: drop-shadow(0 0 4px var(--accent-blue));
+    stroke: #ffffff;
+    stroke-width: 2px;
+    fill: var(--accent-blue);
+    fill-opacity: 1;
+}
+
+/* 항적 라인 */
+.modern-track-line {
+    stroke: var(--accent-blue);
+    stroke-width: 3px;
+    opacity: 0.6;
+    filter: none; 
+}
+
+
+
+
+
+
+
+
+
+
+

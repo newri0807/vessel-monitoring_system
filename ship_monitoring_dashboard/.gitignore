@@ -1,0 +1,26 @@
+# 1. 빌드 결과물
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+
+# 2. IDE 설정 파일
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# 3. 로그 파일
+*.log
+
+# 4. OS 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 5. 보안 
+# src/main/resources/database.properties

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vms.mapper.VesselMapper">
+    
+    <select id="getVesselList" resultType="com.vms.model.VesselDto">
+        SELECT 
+            v.vessel_id   AS id, 
+            v.vessel_name AS name, 
+            v.latitude    AS lat, 
+            v.longitude   AS lng, 
+            v.status, 
+            IFNULL(g.group_id, 'NONE') AS groupId
+        FROM TB_VESSEL v
+        LEFT JOIN TB_USER_GROUP g 
+            ON v.vessel_id = g.vessel_id AND g.user_id = #{userId}
+    </select>
+    
+    <select id="getHistoryByVesselId" resultType="com.vms.model.HistoryDto">
+        SELECT 
+            latitude      AS lat,
+            longitude     AS lng,
+            recorded_time AS recordedTime
+        FROM TB_VESSEL_HISTORY
+        WHERE vessel_id = #{vesselId}
+        ORDER BY recorded_time ASC 
+    </select>
+
+    <insert id="updateVesselGroup">
+        INSERT INTO TB_USER_GROUP (user_id, vessel_id, group_id)
+        VALUES ('user1', #{vesselId}, #{groupId}) 
+        ON DUPLICATE KEY UPDATE group_id = #{groupId}
+    </insert>
+
+
+	<select id="selectAlarmsByVesselId" resultType="map">
+	    SELECT 
+	        alarm_type AS type,
+	        message,
+	        DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS time
+	    FROM tb_alarm
+	    WHERE vessel_id = #{vesselId}
+	    ORDER BY created_at DESC
+	    LIMIT 50
+	</select>
+
+
+</mapper>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vms.mapper.SettingsMapper">
+
+    <select id="selectGroupList" resultType="map">
+        SELECT GROUP_ID as id, GROUP_NAME as name 
+        FROM TB_GROUP_DEF ORDER BY GROUP_ID ASC
+    </select>
+    <insert id="insertGroupDef">
+        INSERT INTO TB_GROUP_DEF (GROUP_NAME) VALUES (#{name})
+    </insert>
+    <update id="updateGroupDef">
+        UPDATE TB_GROUP_DEF SET GROUP_NAME = #{name} WHERE GROUP_ID = #{id}
+    </update>
+    <delete id="deleteGroupDef">
+        DELETE FROM TB_GROUP_DEF WHERE GROUP_ID = #{groupId}
+    </delete>
+
+    <select id="getVesselsWithStatus" resultType="com.vms.model.VesselDto">
+        SELECT v.vessel_id AS id, v.vessel_name AS name, v.status AS status, IFNULL(g.group_id, 'NONE') AS groupId
+        FROM TB_VESSEL v
+        LEFT JOIN TB_USER_GROUP g ON v.vessel_id = g.vessel_id AND g.user_id = #{userId}
+        ORDER BY v.vessel_name ASC
+    </select>
+    <insert id="upsertUserGroup">
+        INSERT INTO TB_USER_GROUP (user_id, vessel_id, group_id)
+        VALUES (#{userId}, #{vesselId}, #{groupId})
+        ON DUPLICATE KEY UPDATE group_id = #{groupId}
+    </insert>
+
+    <select id="selectManagedUsers" resultType="com.vms.model.UserDto">
+        SELECT user_id AS userId, user_name AS userName, role AS role
+        FROM tb_user WHERE created_by = #{userId}
+    </select>
+    <select id="selectAssignableVessels" resultType="com.vms.model.VesselDto">
+        SELECT v.vessel_id AS id, v.vessel_name AS name
+        FROM tb_vessel v
+        <if test="role != 'SYSTEM'">
+            JOIN tb_user_access ua ON v.vessel_id = ua.vessel_id WHERE ua.user_id = #{userId}
+        </if>
+        ORDER BY v.vessel_name ASC
+    </select>
+    <select id="selectUserAccessVessels" resultType="string">
+        SELECT vessel_id FROM tb_user_access WHERE user_id = #{targetUserId}
+    </select>
+    <insert id="insertUser">
+        INSERT INTO tb_user (user_id, password, user_name, role, created_by)
+        VALUES (#{userId}, #{password}, #{userName}, #{role}, #{createdBy})
+    </insert>
+    <insert id="insertUserAccess">
+        INSERT INTO tb_user_access (user_id, vessel_id) VALUES (#{targetUserId}, #{vesselId})
+    </insert>
+    <update id="updateUser">
+        UPDATE tb_user
+        SET user_name = #{userName}
+        <if test="password != null and password != ''">
+            , password = #{password}
+        </if>
+        WHERE user_id = #{userId}
+    </update>
+    <delete id="deleteUser">
+        DELETE FROM tb_user WHERE user_id = #{targetUserId}
+    </delete>
+    <delete id="deleteUserAccess">
+        DELETE FROM tb_user_access WHERE user_id = #{targetUserId}
+    </delete>
+
+    <select id="selectMyMenus" resultType="string">
+        SELECT 'dashboard' FROM DUAL 
+    </select>
+    <select id="selectAllMenus" resultType="com.vms.model.MenuDto">
+        SELECT 
+            MENU_CODE   as menuCode,
+            MENU_NAME   as menuName,
+            PARENT_CODE as parentCode,
+            DEPTH       as depth,
+            MENU_URL    as menuUrl,
+            ICON_CLASS  as iconClass
+        FROM TB_MENU_CODE
+        WHERE IS_USE = 'Y'
+        ORDER BY SORT_ORDER ASC
+    </select>
+    <select id="selectAllMenuCodes" resultType="String">
+        SELECT MENU_CODE FROM TB_MENU_CODE 
+    </select>
+	<select id="selectConfigRawData" resultType="map">
+	    SELECT 
+	        TARGET_TYPE, 
+	        MENU_CODE
+	    FROM TB_MENU_CONFIG
+	    WHERE 
+	       (TARGET_TYPE = 'USER' AND TARGET_ID = #{userId})
+	       OR 
+	       (TARGET_TYPE = 'ROLE' AND TARGET_ID = #{role})
+	</select>
+
+    <delete id="deleteMenuConfig">
+        DELETE FROM TB_MENU_CONFIG 
+        WHERE TARGET_ID = #{targetId} AND TARGET_TYPE = #{targetType}
+    </delete>
+
+    <insert id="insertMenuConfig">
+        INSERT INTO TB_MENU_CONFIG (TARGET_ID, TARGET_TYPE, MENU_CODE)
+        VALUES (#{targetId}, #{targetType}, #{menuCode})
+    </insert>
+
+    <delete id="deleteUserMenuConfigByRole">
+        DELETE C
+        FROM TB_MENU_CONFIG C
+        INNER JOIN TB_USER U ON C.TARGET_ID = U.USER_ID
+        WHERE C.TARGET_TYPE = 'USER'
+          AND U.ROLE = #{role}
+    </delete>
+
+</mapper>
