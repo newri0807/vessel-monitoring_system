@@ -1,7 +1,21 @@
 FROM tomcat:8.5-jdk8-openjdk
-# ê¸°ì¡´ í†°ìº£ ì•± ì‚­ì œ
+
+# 1. ±âÁ¸ ¾Û »èÁ¦
 RUN rm -rf /usr/local/tomcat/webapps/*
-# ë‚´ WAR íŒŒì¼ì„ ROOTë¡œ ë³µì‚¬ (ì ‘ì† ì‹œ / ê²½ë¡œë¡œ ë°”ë¡œ ëœ¸)
-COPY app.war /usr/local/tomcat/webapps/ROOT.war
+
+# 2. WAR ÆÄÀÏÀ» ROOT Æú´õ¿¡ '¾ĞÃà Ç®¾î¼­' º¹»ç (±×·¡¾ß ÆÄÀÏÀ» ¼öÁ¤ÇÒ ¼ö ÀÖÀ½)
+# (ÁÖÀÇ: ·ÎÄÃ¿¡ app.war°¡ ÀÖ¾î¾ß ÇÔ)
+COPY app.war /tmp/app.war
+RUN mkdir /usr/local/tomcat/webapps/ROOT && \
+    cd /usr/local/tomcat/webapps/ROOT && \
+    jar -xvf /tmp/app.war && \
+    rm /tmp/app.war
+
+# 3. ¸¶¹ıÀÇ ½ºÅ©¸³Æ® º¹»ç ¹× ±ÇÇÑ ºÎ¿©
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+
+# 4. ÅèÄ¹ ´ë½Å ½ºÅ©¸³Æ®¸¦ ¸ÕÀú ½ÇÇà
+CMD ["/entrypoint.sh"]

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+    # 1. 톰캣 (Java 앱)
+    vessel-monitoring-system-WAS:
+        build: .
+        container_name: vessel-monitoring-system-WAS
+        ports:
+            - "8080:8080"
+        environment:
+            - REAL_DB_URL=${DB_URL}
+            - REAL_DB_USER=${DB_USER}
+            - REAL_DB_PASSWORD=${DB_PASSWORD}
+        depends_on:
+            - vms-db
+
+    # 2. MariaDB
+    vms-db:
+        image: mariadb:10.6
+        container_name: vms_db-container
+        environment:
+            MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+            MARIADB_DATABASE: ${DB_NAME}
+        volumes:
+            - ./db_data:/var/lib/mysql
