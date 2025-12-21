@@ -1,0 +1,43 @@
+name: Deploy Java & DB
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: SSH Remote Commands
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        script: |
+          echo "🚀 Java & DB 배포 시작..."
+          
+          # 1. 최신 코드 받기
+          if [ ! -d "~/deploy/repo-vessel" ]; then
+            cd ~/deploy
+            git clone https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
+          else
+            cd ~/deploy/repo-vessel
+            git pull origin main
+          fi
+          
+          # 2. .env 파일 생성 (DB 정보 입력)
+          # Java 배포 때는 .env를 새로 깔끔하게 만듭니다.
+          cd ~/deploy
+          rm -f .env
+          touch .env
+          
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env
+          
+          # 3. 도커 실행 (마스터 폴더에서 실행!)
+          # vessel-system과 vms_db만 재시작
+          docker compose up -d --build vessel-system vms_db
+          
+          echo "✅ Java/DB 배포 완료!"
