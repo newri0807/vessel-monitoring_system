@@ -2,6 +2,7 @@ name: Deploy Java & DB
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:      # 👈 이 줄을 추가해야 버튼이 생깁니다!
 
 jobs:
   deploy:
