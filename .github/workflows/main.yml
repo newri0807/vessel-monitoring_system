@@ -10,9 +10,9 @@ jobs:
     - name: SSH Remote Commands
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_NAME }}
+        key: ${{ secrets.SERVER_ACCESS_KEY }}
         script: |
           echo "🚀 Java & DB 배포 시작..."
           
