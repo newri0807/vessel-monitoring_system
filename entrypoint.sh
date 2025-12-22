@@ -7,8 +7,6 @@ COPY pom.xml .
 
 # 소스 코드 복사
 COPY src ./src
-
-# 화면 파일(JSP, CSS 등)도 복사해야 합니다! (이 줄 추가!)
 COPY WebContent ./WebContent
 
 # 빌드 실행 (테스트 건너뛰고 빠르게)
@@ -23,14 +21,9 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 # 2. 빌드 단계에서 만든 WAR 파일을 가져와서 실행
 COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-# 3. 실행 스크립트 설정
-COPY entrypoint.sh /entrypoint.sh
-
-# 4. [핵심] 윈도우 줄바꿈 문자(\r) 강제 제거 (에러 해결사)
-RUN sed -i 's/\r$//' /entrypoint.sh
-
-# 5. 실행 권한 부여
-RUN chmod +x /entrypoint.sh
+# 윈도우 파일 복사하지 말고, 리눅스에서 직접 생성
+RUN printf '#!/bin/bash\ncatalina.sh run\n' > /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]
