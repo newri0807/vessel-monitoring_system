@@ -23,7 +23,8 @@ jobs:
             git clone https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
           else
             cd ~/deploy/repo-vessel
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
           fi
           
           # 2. .env 파일 생성 (DB 정보 입력)
