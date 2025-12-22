@@ -25,7 +25,7 @@ jobs:
           
           # 2. 깨끗한 상태에서 새로 다운로드 (pom.xml 무조건 포함됨)
           cd ~/deploy
-          git clone https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
+          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
           
           # 3. .env 파일 생성
           rm -f .env
