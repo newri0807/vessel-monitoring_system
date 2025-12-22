@@ -2,7 +2,7 @@ name: Deploy Java & DB
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:      # 👈 이 줄을 추가해야 버튼이 생깁니다!
+  workflow_dispatch: # 👈 active 버튼 생성 !
 
 jobs:
   deploy:
@@ -15,31 +15,31 @@ jobs:
         username: ${{ secrets.SERVER_NAME }}
         key: ${{ secrets.SERVER_ACCESS_KEY }}
         script: |
-          echo "🚀 Java & DB 배포 시작..."
+          echo "🚀 Java & DB '클린' 배포 시작..."
           
-          # 1. 최신 코드 받기
-          if [ ! -d "~/deploy/repo-vessel" ]; then
-            cd ~/deploy
-            git clone https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
-          else
-            cd ~/deploy/repo-vessel
-            git fetch --all
-            git reset --hard origin/main
+          # 1. 기존 폴더가 있으면, 묻지도 따지지도 말고 삭제 (권한 문제 해결)
+          # (sudo를 써서 아까 수동으로 만든 파일까지 강제로 밈)
+          if [ -d "~/deploy/repo-vessel" ]; then
+            sudo rm -rf ~/deploy/repo-vessel
           fi
           
-          # 2. .env 파일 생성 (DB 정보 입력)
-          # Java 배포 때는 .env를 새로 깔끔하게 만듭니다.
+          # 2. 깨끗한 상태에서 새로 다운로드 (pom.xml 무조건 포함됨)
           cd ~/deploy
+          git clone https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
+          
+          # 3. .env 파일 생성
           rm -f .env
           touch .env
-          
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env
           
-          # 3. 도커 실행 (마스터 폴더에서 실행!)
-          # vessel-system과 vms_db만 재시작
+          # 4. 다운로드 잘 됐는지 확인 (로그에 파일 목록 찍기)
+          echo "📂 다운로드된 파일 목록 확인:"
+          ls -F ~/deploy/repo-vessel
+          
+          # 5. 도커 빌드 & 실행
           docker compose up -d --build vessel-system vms_db
           
-          echo "✅ Java/DB 배포 완료!"
+          echo "✅ 완전 초기화 후 배포 완료!"
