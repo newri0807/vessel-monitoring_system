@@ -27,15 +27,16 @@ jobs:
           # 2. 프로젝트 폴더로 이동
           cd /home/ubuntu/deploy/repo-vessel
           
-          # database.properties 파일 즉석 생성
-          # 폴더가 없을 수도 있으니 먼저 생성
-          mkdir -p src/main/resources
+          # 🔥 [핵심 수정] 코드(classpath:resources/...)에 맞춰서 폴더를 두 번 팜
+          # src/main/resources 안에 'resources' 폴더를 하나 더 만들어야 함!
+          mkdir -p src/main/resources/resources
           
-          echo "db.driverClassName=com.mysql.jdbc.Driver" > src/main/resources/database.properties
-          echo "db.url=$DB_URL" >> src/main/resources/database.properties
-          echo "db.username=$DB_USERNAME" >> src/main/resources/database.properties
-          echo "db.password=$DB_PASSWORD" >> src/main/resources/database.properties
-          
+          # 파일 생성 경로도 'resources/resources' 로 변경
+          echo "db.driverClassName=com.mysql.jdbc.Driver" > src/main/resources/resources/database.properties
+          echo "db.url=$DB_URL" >> src/main/resources/resources/database.properties
+          echo "db.username=$DB_USERNAME" >> src/main/resources/resources/database.properties
+          echo "db.password=$DB_PASSWORD" >> src/main/resources/resources/database.properties
+                    
           echo "✅ 보안 파일 생성 완료!"
 
           # 3. 도커 실행 (이제 파일이 있으니 빌드 성공함)
