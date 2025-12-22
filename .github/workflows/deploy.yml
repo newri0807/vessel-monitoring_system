@@ -22,12 +22,12 @@ jobs:
           # 1. 기존 폴더 삭제 및 Clone
           sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
           cd /home/ubuntu/deploy
-          git clone -b main https://github.com/newri0807/vessel-system.git repo-vessel
+          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
           
           # 2. 프로젝트 폴더로 이동
           cd /home/ubuntu/deploy/repo-vessel
           
-          # 🔥 [핵심 수정] 코드(classpath:resources/...)에 맞춰서 폴더를 두 번 팜
+          # 코드(classpath:resources/...)에 맞춰서 폴더를 두 번 팜
           # src/main/resources 안에 'resources' 폴더를 하나 더 만들어야 함!
           mkdir -p src/main/resources/resources
           
