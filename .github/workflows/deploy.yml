@@ -8,35 +8,36 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: SSH Remote Commands
+    - name: Java 배포 (SSH Remote Commands)
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_NAME }}
         key: ${{ secrets.SERVER_ACCESS_KEY }}
+        # 깃허브에 저장한 비밀번호를 이 스크립트로 넘겨줌
+        envs: DB_URL, DB_USERNAME, DB_PASSWORD
         script: |
-          echo "🚀 Java & DB '클린' 배포 시작..."
+          echo "🚀 Java 배포 시작..."
           
-          # 1. 무조건 강제 삭제 (에러 방지 || true 추가)
+          # 1. 기존 폴더 삭제 및 Clone
           sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
-          
-          # 2. 메인 브랜치 강제 다운로드
           cd /home/ubuntu/deploy
-          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
+          git clone -b main https://github.com/newri0807/vessel-system.git repo-vessel
           
-          # 3. .env 파일 생성
-          rm -f .env
-          touch .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env
+          # 2. 프로젝트 폴더로 이동
+          cd /home/ubuntu/deploy/repo-vessel
           
-          # 4. 확인용 (이제 pom.xml 보일 겁니다)
-          echo "📂 파일 목록 확인:"
-          ls -F /home/ubuntu/deploy/repo-vessel
+          # database.properties 파일 즉석 생성
+          # 폴더가 없을 수도 있으니 먼저 생성
+          mkdir -p src/main/resources
           
-          # 5. 실행
-          docker compose up -d --build vessel-system vms_db
+          echo "db.driverClassName=com.mysql.jdbc.Driver" > src/main/resources/database.properties
+          echo "db.url=$DB_URL" >> src/main/resources/database.properties
+          echo "db.username=$DB_USERNAME" >> src/main/resources/database.properties
+          echo "db.password=$DB_PASSWORD" >> src/main/resources/database.properties
           
-          echo "✅ 배포 완료!"
+          echo "✅ 보안 파일 생성 완료!"
+
+          # 3. 도커 실행 (이제 파일이 있으니 빌드 성공함)
+          cd /home/ubuntu/deploy
+          docker compose up -d --build vessel-system
