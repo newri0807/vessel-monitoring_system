@@ -1,17 +1,28 @@
-#!/bin/bash
+# [Stage 1] 빌드 단계 (Maven으로 WAR 파일 생성)
+FROM maven:3.8.6-openjdk-8 as builder
+WORKDIR /app
+# 프로젝트 설정 파일 복사
+COPY pom.xml .
+# 소스 코드 복사
+COPY src ./src
+# 빌드 실행 (테스트 건너뛰고 빠르게)
+RUN mvn package -DskipTests
 
-# database.properties 파일 위치 (WAR 구조에 따라 경로 확인 필요!)
-# 보통: /usr/local/tomcat/webapps/ROOT/WEB-INF/classes/database.properties
-CONFIG_FILE="/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/database.properties"
+# [Stage 2] 실행 단계 (Tomcat)
+FROM tomcat:9-jdk8-openjdk
 
-echo "⚙️ DB 설정 파일 수정 중..."
+# 기존 톰캣 기본 앱 삭제 (충돌 방지)
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# sed 명령어로 파일 내용 바꿔치기
-# db.url=... 부분을 찾아서 환경변수 REAL_DB_URL 값으로 변경
-sed -i "s|db.url=.*|db.url=$REAL_DB_URL|g" $CONFIG_FILE
-sed -i "s|db.username=.*|db.username=$REAL_DB_USER|g" $CONFIG_FILE
-sed -i "s|db.password=.*|db.password=$REAL_DB_PASSWORD|g" $CONFIG_FILE
+# [중요] 1단계에서 만든 WAR 파일을 가져와서 ROOT.war로 이름 변경
+COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-echo "✅ 설정 완료! 톰캣 시작합니다."
-# 원래 톰캣 실행 명령어 실행
-exec catalina.sh run
+# entrypoint.sh 스크립트 복사 및 실행 권한 부여
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 8080 포트 열기
+EXPOSE 8080
+
+# 실행 명령
+ENTRYPOINT ["/entrypoint.sh"]
