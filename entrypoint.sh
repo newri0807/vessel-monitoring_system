@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # [Stage 1] 빌드 단계 (Maven으로 WAR 파일 생성)
 FROM maven:3.8.6-openjdk-8 as builder
 WORKDIR /app
