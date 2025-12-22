@@ -19,26 +19,28 @@ jobs:
         script: |
           echo "🚀 Java 배포 시작..."
           
-          # 1. 기존 폴더 삭제 및 Clone
+          # 1. 기존 소스 삭제 및 재다운로드
           sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
           cd /home/ubuntu/deploy
-          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
+          git clone -b main https://github.com/newri0807/vessel-system.git repo-vessel
           
-          # 2. 프로젝트 폴더로 이동
+          # 2. 파일 생성 위치를 'Dockerfile'이 참조하는 곳으로 지정
+          # Dockerfile이 'COPY WebContent ./WebContent'를 하므로 그 구조에 맞춰야 함
           cd /home/ubuntu/deploy/repo-vessel
           
-          # 코드(classpath:resources/...)에 맞춰서 폴더를 두 번 팜
-          # src/main/resources 안에 'resources' 폴더를 하나 더 만들어야 함!
+          # 폴더 생성 (WebContent와 같은 레벨 또는 src 내부에 생성)
           mkdir -p src/main/resources/resources
           
-          # 파일 생성 경로도 'resources/resources' 로 변경
-          echo "db.driverClassName=com.mysql.jdbc.Driver" > src/main/resources/resources/database.properties
-          echo "db.url=$DB_URL" >> src/main/resources/resources/database.properties
-          echo "db.username=$DB_USERNAME" >> src/main/resources/resources/database.properties
-          echo "db.password=$DB_PASSWORD" >> src/main/resources/resources/database.properties
-                    
-          echo "✅ 보안 파일 생성 완료!"
-
-          # 3. 도커 실행 (이제 파일이 있으니 빌드 성공함)
+          # 변수 값 주입 (쌍따옴표 필수)
+          echo "db.driverClassName=com.mysql.jdbc.Driver"" > src/main/resources/resources/database.properties
+          echo "db.url=${DB_URL}" >> src/main/resources/resources/database.properties
+          echo "db.username=${DB_USERNAME}" >> src/main/resources/resources/database.properties
+          echo "db.password=${DB_PASSWORD}" >> src/main/resources/resources/database.properties
+          
+          echo "🔎 생성된 파일 내용 확인 (보안 주의):"
+          cat src/main/resources/resources/database.properties
+          
+          # 3. 도커 실행
           cd /home/ubuntu/deploy
           docker compose up -d --build vessel-system
+
