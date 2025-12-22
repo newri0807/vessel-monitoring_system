@@ -15,15 +15,11 @@ RUN mvn package -DskipTests
 # [Stage 2] 실행 단계 (Tomcat)
 FROM tomcat:9-jdk8-openjdk
 
-# 1. 기존 톰캣 앱 삭제
+# 1. 기존 톰캣 앱 삭제 (ROOT 폴더 비우기)
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # 2. 빌드 단계에서 만든 WAR 파일을 가져와서 실행
 COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-# 윈도우 파일 복사하지 말고, 리눅스에서 직접 생성
-RUN printf '#!/bin/bash\ncatalina.sh run\n' > /entrypoint.sh && \
-    chmod +x /entrypoint.sh
-
 EXPOSE 8080
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["catalina.sh", "run"]
