@@ -2,7 +2,7 @@ name: Deploy Java & DB
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # 👈 active 버튼 생성 !
+  workflow_dispatch: #run 수동 버튼 생성
 
 jobs:
   deploy:
@@ -17,14 +17,11 @@ jobs:
         script: |
           echo "🚀 Java & DB '클린' 배포 시작..."
           
-          # 1. 기존 폴더가 있으면, 묻지도 따지지도 말고 삭제 (권한 문제 해결)
-          # (sudo를 써서 아까 수동으로 만든 파일까지 강제로 밈)
-          if [ -d "~/deploy/repo-vessel" ]; then
-            sudo rm -rf ~/deploy/repo-vessel
-          fi
+          # 1. 무조건 강제 삭제 (에러 방지 || true 추가)
+          sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
           
-          # 2. 깨끗한 상태에서 새로 다운로드 (pom.xml 무조건 포함됨)
-          cd ~/deploy
+          # 2. 메인 브랜치 강제 다운로드
+          cd /home/ubuntu/deploy
           git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
           
           # 3. .env 파일 생성
@@ -35,11 +32,11 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env
           
-          # 4. 다운로드 잘 됐는지 확인 (로그에 파일 목록 찍기)
-          echo "📂 다운로드된 파일 목록 확인:"
-          ls -F ~/deploy/repo-vessel
+          # 4. 확인용 (이제 pom.xml 보일 겁니다)
+          echo "📂 파일 목록 확인:"
+          ls -F /home/ubuntu/deploy/repo-vessel
           
-          # 5. 도커 빌드 & 실행
+          # 5. 실행
           docker compose up -d --build vessel-system vms_db
           
-          echo "✅ 완전 초기화 후 배포 완료!"
+          echo "✅ 배포 완료!"
