@@ -22,7 +22,7 @@ jobs:
           # 1. 기존 소스 삭제 및 재다운로드
           sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
           cd /home/ubuntu/deploy
-          git clone -b main https://github.com/newri0807/vessel-system.git repo-vessel
+          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel
           
           # 2. 파일 생성 위치를 'Dockerfile'이 참조하는 곳으로 지정
           # Dockerfile이 'COPY WebContent ./WebContent'를 하므로 그 구조에 맞춰야 함
