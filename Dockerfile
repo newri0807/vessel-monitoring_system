@@ -1,21 +1,29 @@
-FROM tomcat:8.5-jdk8-openjdk
+# [Stage 1] ë¹Œë“œ ë‹¨ê³„ (Maven ì‚¬ìš©)
+FROM maven:3.8.6-openjdk-8 as builder
+WORKDIR /app
 
-# 1. ±âÁ¸ ¾Û »èÁ¦
+# 1. ì„¤ì • íŒŒì¼ ë³µì‚¬
+COPY pom.xml .
+
+# 2. ì†ŒìŠ¤ ì½”ë“œ ë³µì‚¬
+COPY src ./src
+COPY WebContent ./WebContent
+
+# 3. ë¹Œë“œ ì‹¤í–‰ (WAR íŒŒì¼ ìƒì„±)
+RUN mvn package -DskipTests
+
+# [Stage 2] ì‹¤í–‰ ë‹¨ê³„ (Tomcat)
+FROM tomcat:9-jdk8-openjdk
+
+# 1. ê¸°ì¡´ í†°ìº£ ì•± ì‚­ì œ
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-# 2. WAR ÆÄÀÏÀ» ROOT Æú´õ¿¡ '¾ĞÃà Ç®¾î¼­' º¹»ç (±×·¡¾ß ÆÄÀÏÀ» ¼öÁ¤ÇÒ ¼ö ÀÖÀ½)
-# (ÁÖÀÇ: ·ÎÄÃ¿¡ app.war°¡ ÀÖ¾î¾ß ÇÔ)
-COPY app.war /tmp/app.war
-RUN mkdir /usr/local/tomcat/webapps/ROOT && \
-    cd /usr/local/tomcat/webapps/ROOT && \
-    jar -xvf /tmp/app.war && \
-    rm /tmp/app.war
+# 2. ë¹Œë“œ ë‹¨ê³„ì—ì„œ ë§Œë“  WAR íŒŒì¼ì„ ê°€ì ¸ì™€ì„œ ì‹¤í–‰
+COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-# 3. ¸¶¹ıÀÇ ½ºÅ©¸³Æ® º¹»ç ¹× ±ÇÇÑ ºÎ¿©
+# 3. ì‹¤í–‰ ìŠ¤í¬ë¦½íŠ¸ ì„¤ì •
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
-
-# 4. ÅèÄ¹ ´ë½Å ½ºÅ©¸³Æ®¸¦ ¸ÕÀú ½ÇÇà
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
