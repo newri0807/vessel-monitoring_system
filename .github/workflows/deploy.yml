@@ -8,38 +8,31 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Java 배포 (SSH Remote Commands)
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_NAME }}
-        key: ${{ secrets.SERVER_ACCESS_KEY }}
-        script: |
-          echo "🚀 배포 프로세스 시작"
-          
-          # 1. 기존 폴더 깔끔하게 정리
-          sudo rm -rf /home/ubuntu/deploy/repo-vessel || true
-          cd /home/ubuntu/deploy
-          
-          # 2. 소스 다운로드
-          git clone -b main https://github.com/newri0807/vessel-monitoring_system.git repo-vessel || exit 1
-          
-          # 3. DB 설정 파일 생성 (중요: Secrets 이름을 대문자로 정확히 매칭)
-          cd /home/ubuntu/deploy/repo-vessel
-          mkdir -p src/main/resources/resources
-          
-          cat <<EOF > src/main/resources/resources/database.properties
-          db.driverClassName=org.mariadb.jdbc.Driver
-          db.url=${{ secrets.DB_URL }}
-          db.username=${{ secrets.DB_USERNAME }}
-          db.password=${{ secrets.DB_PASSWORD }}
-          EOF
-          
-          echo "🔎 파일 생성 결과 확인"
-          cat src/main/resources/resources/database.properties
-          
-          # 4. 도커 빌드 및 실행
-          cd /home/ubuntu/deploy
-          docker compose up -d --build vessel-system
-          
-          echo "✅ 모든 작업이 완료되었습니다!"
+      - name: Java 배포 (SSH Remote Commands)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_NAME }}
+          key: ${{ secrets.SERVER_ACCESS_KEY }}
+          script: |
+            cd /home/ubuntu/deploy/repo-vessel
+            
+            # 1. pom.xml 구조에 맞춘 경로 생성
+            mkdir -p src/resources
+            
+            # 2. 파일 생성 (드라이버는 pom.xml에 있는 mysql 드라이버 사용)
+            cat <<'EOF' > src/resources/database.properties
+            db.driverClassName=com.mysql.jdbc.Driver
+            db.url=${{ secrets.DB_URL }}
+            db.username=${{ secrets.DB_USERNAME }}
+            db.password=${{ secrets.DB_PASSWORD }}
+            EOF
+            
+            echo "🔎 파일 생성 결과 확인"
+            ls -l src/resources/database.properties
+            
+            # 3. 도커 빌드 및 컨테이너 재시작
+            cd /home/ubuntu/deploy
+            docker compose up -d --build vessel-system
+            
+            echo "✅ 모든 작업이 완료되었습니다!"
