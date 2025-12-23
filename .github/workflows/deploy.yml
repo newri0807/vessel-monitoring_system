@@ -13,16 +13,32 @@ jobs:
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_NAME }}
-          key: ${{ secrets.SERVER_ACCESS_KEY }}       
+          key: ${{ secrets.SERVER_ACCESS_KEY }}   
           script: |
             cd /home/ubuntu/deploy/repo-vessel
             git checkout . && git clean -fd
             git pull origin main
 
-            # 폴더 생성
+            # 1. 표준 폴더 구조 생성
+            mkdir -p src/main/java
             mkdir -p src/main/resources/resources
+            mkdir -p src/main/resources/mappers
+            mkdir -p src/main/webapp
+
+            # 2. 자바 파일 이동
+            find src -name "*.java" -exec mv {} src/main/java/ \; 2>/dev/null || true
             
-            # 파일 생성 (들여쓰기 없이 왼쪽 끝에 밀착!)
+            # 3. 모든 XML 설정 파일 이동 
+            # 프로젝트 루트나 src에 흩어진 모든 .xml을 resources로 모음
+            find src -name "*.xml" -not -name "pom.xml" -exec cp {} src/main/resources/ \; 2>/dev/null || true
+            find src -name "*.xml" -not -name "pom.xml" -exec mv {} src/main/resources/mappers/ \; 2>/dev/null || true
+
+            # 4. WebContent 내용 통째로 복사 (WEB-INF 폴더 누락 방지)
+            if [ -d "WebContent" ]; then
+              cp -r WebContent/* src/main/webapp/
+            fi
+
+            # 5. DB 설정 생성 (들여쓰기 주의!)
             cat <<'EOF' > src/main/resources/resources/database.properties
             db.driverClassName=com.mysql.jdbc.Driver
             db.url=${{ secrets.DB_URL }}
@@ -30,13 +46,9 @@ jobs:
             db.password=${{ secrets.DB_PASSWORD }}
             EOF
 
-            # 파일이 진짜 생성됐는지 확인하는 로그 (Actions 콘솔에서 볼 수 있음)
-            echo "--- 생성된 파일 내용 확인 ---"
-            cat src/main/resources/resources/database.properties
-            
-            # 빌드 실행 시 캐시를 무시하도록 강제 (--no-cache 추가 권장)
+            # 6. 빌드 및 재시작
             cd /home/ubuntu/deploy
-            docker compose build --no-cache vessel-system
-            docker compose up -d vessel-system
-               
+            docker compose up -d --build vessel-system
+            
             echo "✅ 모든 작업이 완료되었습니다!"
+               
