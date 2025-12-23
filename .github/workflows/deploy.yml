@@ -17,22 +17,33 @@ jobs:
           script: |
             cd /home/ubuntu/deploy/repo-vessel
             
-            # 1. pom.xml 구조에 맞춘 경로 생성
-            mkdir -p src/resources
-            
-            # 2. 파일 생성 (드라이버는 pom.xml에 있는 mysql 드라이버 사용)
-            cat <<'EOF' > src/resources/database.properties
+            # [추가] 이전 배포에서 옮겨진 구조를 원래 이클립스 구조로 초기화 (충돌 방지)
+            git checkout . && git clean -fd
+            git pull origin main
+
+            # 1. Eclipse -> Maven 구조로 동적 변경
+            mkdir -p src/main/java
+            mkdir -p src/main/resources/resources
+            mkdir -p src/main/webapp
+
+            # 2. 자바 소스 이동 (src 밑의 패키지들만 이동)
+            find src -maxdepth 1 -not -name "src" -not -name "main" -not -name "resources" -exec mv {} src/main/java/ \; 2>/dev/null || true
+
+            # 3. WebContent 내용을 src/main/webapp으로 이동
+            if [ -d "WebContent" ]; then
+              mv WebContent/* src/main/webapp/ 2>/dev/null || true
+            fi
+
+            # 4. 설정 파일 생성 (classpath:resources/database.properties 경로 일치)
+            cat <<'EOF' > src/main/resources/resources/database.properties
             db.driverClassName=com.mysql.jdbc.Driver
             db.url=${{ secrets.DB_URL }}
             db.username=${{ secrets.DB_USERNAME }}
             db.password=${{ secrets.DB_PASSWORD }}
             EOF
             
-            echo "🔎 파일 생성 결과 확인"
-            ls -l src/resources/database.properties
-            
-            # 3. 도커 빌드 및 컨테이너 재시작
+            # 5. 빌드 및 재시작
             cd /home/ubuntu/deploy
-            docker compose up -d --build vessel-system
-            
+            docker compose up -d --build vessel-system          
+               
             echo "✅ 모든 작업이 완료되었습니다!"
